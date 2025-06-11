@@ -1,14 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>My First JS Game</title>
+  <title>方塊碰撞變大</title>
   <style>
-    canvas {
-      background: #eee;
-      display: block;
-      margin: 0 auto;
-    }
+    canvas { background: #eee; display: block; margin: 20px auto; }
   </style>
 </head>
 <body>
@@ -18,23 +13,74 @@
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
 
-    let x = 200, y = 200, size = 30, speed = 5;
+    // 主方塊初始設定
+    let mainBlock = {
+      x: 50,
+      y: 50,
+      size: 40,
+      speed: 5,
+      color: 'blue'
+    };
+
+    // 小方塊初始設定（隨機位置）
+    let smallBlock = {
+      size: 20,
+      color: 'red',
+      x: Math.random() * (canvas.width - 20),
+      y: Math.random() * (canvas.height - 20)
+    };
+
+    // 控制按鍵
+    let keys = {};
+
+    window.addEventListener('keydown', e => { keys[e.key] = true; });
+    window.addEventListener('keyup', e => { keys[e.key] = false; });
+
+    function update() {
+      // 移動主方塊
+      if(keys['ArrowUp']) mainBlock.y -= mainBlock.speed;
+      if(keys['ArrowDown']) mainBlock.y += mainBlock.speed;
+      if(keys['ArrowLeft']) mainBlock.x -= mainBlock.speed;
+      if(keys['ArrowRight']) mainBlock.x += mainBlock.speed;
+
+      // 邊界限制
+      mainBlock.x = Math.max(0, Math.min(canvas.width - mainBlock.size, mainBlock.x));
+      mainBlock.y = Math.max(0, Math.min(canvas.height - mainBlock.size, mainBlock.y));
+
+      // 碰撞檢測（主方塊和小方塊）
+      if (mainBlock.x < smallBlock.x + smallBlock.size &&
+          mainBlock.x + mainBlock.size > smallBlock.x &&
+          mainBlock.y < smallBlock.y + smallBlock.size &&
+          mainBlock.y + mainBlock.size > smallBlock.y) {
+
+        // 碰到後，主方塊變大一點
+        mainBlock.size += 5;
+
+        // 小方塊重新隨機生成位置
+        smallBlock.x = Math.random() * (canvas.width - smallBlock.size);
+        smallBlock.y = Math.random() * (canvas.height - smallBlock.size);
+      }
+    }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "blue";
-      ctx.fillRect(x, y, size, size);
-      requestAnimationFrame(draw);
+
+      // 畫主方塊
+      ctx.fillStyle = mainBlock.color;
+      ctx.fillRect(mainBlock.x, mainBlock.y, mainBlock.size, mainBlock.size);
+
+      // 畫小方塊
+      ctx.fillStyle = smallBlock.color;
+      ctx.fillRect(smallBlock.x, smallBlock.y, smallBlock.size, smallBlock.size);
     }
 
-    document.addEventListener("keydown", e => {
-      if (e.key === "ArrowUp") y -= speed;
-      if (e.key === "ArrowDown") y += speed;
-      if (e.key === "ArrowLeft") x -= speed;
-      if (e.key === "ArrowRight") x += speed;
-    });
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
 
-    draw();
+    loop();
   </script>
 </body>
 </html>
